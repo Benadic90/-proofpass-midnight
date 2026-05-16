@@ -1,0 +1,56 @@
+// ProofPass.compact
+// Built for Midnight Hackathon 2026
+//
+// Compact-style placeholder contract for demo purposes.
+// This file illustrates how ProofPass commitments could be stored on Midnight.
+// It is intentionally simplified for MVP architecture explanation.
+
+contract ProofPass {
+  // Public commitment record keyed by proofId.
+  // Important: private user data is NEVER stored on-chain.
+  struct PublicProofRecord {
+    proofId: String,
+    proofHash: String,
+    publicClaims: String,
+    timestamp: Uint64,
+    valid: Bool,
+  }
+
+  state commitments: Map<String, PublicProofRecord>
+
+  // Stores only commitment + public verification signals.
+  // No full name, studentId, email, DOB, or secret phrase is ever written.
+  export circuit registerProof(
+    proofId: String,
+    proofHash: String,
+    publicClaims: String,
+    timestamp: Uint64
+  ): Bool {
+    let record = PublicProofRecord {
+      proofId,
+      proofHash,
+      publicClaims,
+      timestamp,
+      valid: true,
+    }
+
+    commitments[proofId] = record
+    return true
+  }
+
+  // Verifier-facing check by proofId + commitment hash.
+  // In a full Midnight integration this could include selective disclosure,
+  // private state transitions, issuer attestations, and revocation logic.
+  export circuit verifyProof(proofId: String, proofHash: String): Bool {
+    let record = commitments[proofId]
+    if (!record.valid) {
+      return false
+    }
+
+    return record.proofHash == proofHash
+  }
+}
+
+// Midnight privacy note:
+// Midnight enables private data handling and selective disclosure workflows.
+// ProofPass would keep identity attributes private while exposing only verifiable outcomes.
